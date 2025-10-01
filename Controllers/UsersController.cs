@@ -13,11 +13,9 @@ namespace AppointmentApi.Controllers
             new User { Id = 3, Name = "Ion", Role = "User" }
         };
 
-        // GET /users/list
         [HttpGet("list")]
         public IActionResult GetList() => Ok(Users);
 
-        // GET /users/details/{id}
         [HttpGet("details/{id}")]
         public IActionResult GetDetails(int id)
         {

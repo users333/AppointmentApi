@@ -6,7 +6,7 @@ namespace AppointmentApi.Controllers
     [Route("appointments")]
     public class AppointmentsController : ControllerBase
     {
-        // LISTA STATICĂ DE PROGRAMĂRI (Nivel 5)
+
         private static readonly List<Appointment> Appointments = new()
         {
             new Appointment { Id = 1, Name = "Andrei Popescu", Date = DateTime.Now.AddDays(1) },
@@ -21,13 +21,11 @@ namespace AppointmentApi.Controllers
             new Appointment { Id = 10, Name = "Florin Dobre", Date = DateTime.Now.AddDays(10) }
         };
 
-        // ===================== PUBLIC =====================
 
-    
+
         [HttpGet("public/list")]
         public IActionResult PublicList() => Ok(Appointments);
 
-        // GET /appointments/details/{id}  (Nivel 6)
         [HttpGet("details/{id}")]
         public IActionResult GetDetails(int id)
         {
@@ -36,35 +34,7 @@ namespace AppointmentApi.Controllers
             return Ok(item);
         }
 
-       
-        [HttpGet("search")]
-        public IActionResult Search(string? name, DateTime? dateFrom, DateTime? dateTo)
-        {
-            var results = Appointments.AsEnumerable();
 
-            if (!string.IsNullOrEmpty(name))
-                results = results.Where(a => a.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
-            if (dateFrom.HasValue)
-                results = results.Where(a => a.Date >= dateFrom.Value);
-            if (dateTo.HasValue)
-                results = results.Where(a => a.Date <= dateTo.Value);
-
-            return Ok(results);
-        }
-
-      
-        [HttpPut("admin/edit/{id}")]
-        public IActionResult AdminEdit(int id, [FromBody] Appointment update)
-        {
-            var item = Appointments.FirstOrDefault(a => a.Id == id);
-            if (item == null) return NotFound();
-
-            item.Name = update.Name;
-            item.Date = update.Date;
-            return Ok(item);
-        }
-
-        // POST /appointments/admin/add  (Nivel 9 + 10)
         [HttpPost("admin/add")]
         public IActionResult AdminAdd([FromBody] Appointment newAppointment)
         {
@@ -77,7 +47,6 @@ namespace AppointmentApi.Controllers
             return CreatedAtAction(nameof(GetDetails), new { id = newAppointment.Id }, newAppointment);
         }
 
-        // DELETE /appointments/admin/delete/{id}  (Nivel 9 + 10)
         [HttpDelete("admin/delete/{id}")]
         public IActionResult AdminDelete(int id)
         {
@@ -87,9 +56,41 @@ namespace AppointmentApi.Controllers
             Appointments.Remove(item);
             return Ok($"Appointment with ID {id} was deleted.");
         }
+        [HttpGet("search")]
+        public IActionResult Search([FromQuery] string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return BadRequest("Trebuie să specifici un nume.");
+
+            var results = Appointments
+                .Where(a => a.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!results.Any())
+                return NotFound("Nu s-au găsit programări pentru acest nume.");
+
+            return Ok(results);
+        }
+
+        [HttpPut("update-up/{id}")]
+        public IActionResult UpdateAppointment(int id, [FromBody] Appointment update)
+        {
+            var item = Appointments.FirstOrDefault(a => a.Id == id);
+            if (item == null) return NotFound($"Nu exista programare cu ID = {id}.");
+
+            item.Name = update.Name;
+            item.Date = update.Date;
+
+            return Ok(item);
+        }
+
+
+
+
     }
 
-    
+
+
     public class Appointment
     {
         public int Id { get; set; }
