@@ -89,6 +89,25 @@ namespace AppointmentApi.Controllers
             Appointments.Remove(item);
             return Ok($"Appointment with ID {id} was deleted.");
         }
+        [HttpPost("admin/add")]
+        public IActionResult AdminAdd([FromBody] CreateAppointmentDto newAppointment)
+        {
+            if (Appointments.Any(a => a.Id == newAppointment.Id))
+                return BadRequest("ID already exists.");
+
+            var appointment = new Appointment
+            {
+                Id = newAppointment.Id,
+                Name = newAppointment.Name,
+                Date = newAppointment.Date,
+                Email = newAppointment.Email,
+                DoctorName = newAppointment.DoctorName,
+            };
+
+            Appointments.Add(appointment);
+            return CreatedAtAction(nameof(GetDetails), new { id = appointment.Id }, appointment);
+        }
+
     }
 
     public class Appointment
